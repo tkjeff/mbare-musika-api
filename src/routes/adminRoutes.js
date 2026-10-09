@@ -1,0 +1,18 @@
+﻿const express = require("express");
+const {
+    getPendingSellers,
+    reviewSeller
+} = require("../controllers/adminController");
+const {
+    authenticate,
+    authorizeRoles
+} = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+router.use(authenticate, authorizeRoles("ADMIN"));
+
+router.get("/sellers/pending", getPendingSellers);
+router.patch("/sellers/:sellerProfileId/approval", reviewSeller);
+
+module.exports = router;
