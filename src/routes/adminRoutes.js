@@ -1,7 +1,9 @@
 ﻿const express = require("express");
 const {
     getPendingSellers,
-    reviewSeller
+    reviewSeller,
+    getPendingRiders,
+    reviewRider
 } = require("../controllers/adminController");
 const {
     authenticate,
@@ -14,5 +16,8 @@ router.use(authenticate, authorizeRoles("ADMIN"));
 
 router.get("/sellers/pending", getPendingSellers);
 router.patch("/sellers/:sellerProfileId/approval", reviewSeller);
+
+router.get("/riders/pending", getPendingRiders);
+router.patch("/riders/:riderProfileId/approval", reviewRider);
 
 module.exports = router;
