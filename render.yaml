@@ -1,0 +1,30 @@
+﻿services:
+  - type: web
+    name: mbare-musika-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mbare-musika-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: https://mbare-musika-web.vercel.app
+
+databases:
+  - name: mbare-musika-db
+    databaseName: mbare_musika_db
+    user: mbare_musika_user
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"
+
