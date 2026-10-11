@@ -1,4 +1,4 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -12,6 +12,7 @@ const rateLimit = require("express-rate-limit");
 const { Pool } = require("pg");
 
 const app = express();
+app.set('trust proxy', 1);
 const authRoutes = require("./routes/authRoutes");
 const port = Number(process.env.PORT || 4000);
 
