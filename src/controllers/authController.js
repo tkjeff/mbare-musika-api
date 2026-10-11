@@ -1,10 +1,11 @@
-﻿const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
 const { z } = require("zod");
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: true }
 });
 
 const registerSchema = z.object({
