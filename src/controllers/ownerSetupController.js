@@ -1,4 +1,4 @@
-﻿const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { z } = require("zod");
 const pool = require("../config/db");
@@ -87,8 +87,8 @@ async function setupOwner(req, res, next) {
         await client.query(
             `INSERT INTO audit_logs
                 (actor_user_id, action, entity_type, entity_id, details)
-             VALUES ($1, 'OWNER_INITIAL_SETUP', 'USER', $1, $2::jsonb)`,
-            [owner.id, JSON.stringify({ role: "OWNER" })]
+             VALUES ($1::uuid, 'OWNER_INITIAL_SETUP', 'USER', $2::text, $3::jsonb)`,
+            [owner.id, owner.id, JSON.stringify({ role: "OWNER" })]
         );
 
         await client.query("COMMIT");
