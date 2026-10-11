@@ -1,4 +1,4 @@
-const cloudinary = require("cloudinary").v2;
+﻿const cloudinary = require("cloudinary").v2;
 const pool = require("../config/db");
 const { Readable } = require("stream");
 
@@ -10,6 +10,11 @@ function configureCloudinary() {
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
+        console.error("[Cloudinary diagnostic] Required environment variable presence:", {
+            CLOUDINARY_CLOUD_NAME: Boolean(cloudName),
+            CLOUDINARY_API_KEY: Boolean(apiKey),
+            CLOUDINARY_API_SECRET: Boolean(apiSecret)
+        });
         return false;
     }
 
