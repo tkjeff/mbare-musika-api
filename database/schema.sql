@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+﻿CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -7,11 +7,34 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(30),
     password_hash TEXT NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER'
-        CHECK (role IN ('CUSTOMER', 'SELLER', 'RIDER', 'ADMIN')),
+        CHECK (role IN ('CUSTOMER', 'SELLER', 'RIDER', 'ADMIN', 'OWNER')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+DO $$
+DECLARE
+    role_constraint_definition TEXT;
+BEGIN
+    SELECT pg_get_constraintdef(oid)
+    INTO role_constraint_definition
+    FROM pg_constraint
+    WHERE conrelid = 'users'::regclass
+      AND conname = 'users_role_check';
+
+    IF role_constraint_definition IS NOT NULL
+       AND POSITION('OWNER' IN role_constraint_definition) = 0 THEN
+        ALTER TABLE users DROP CONSTRAINT users_role_check;
+        role_constraint_definition := NULL;
+    END IF;
+
+    IF role_constraint_definition IS NULL THEN
+        ALTER TABLE users
+            ADD CONSTRAINT users_role_check
+            CHECK (role IN ('CUSTOMER', 'SELLER', 'RIDER', 'ADMIN', 'OWNER'));
+    END IF;
+END
+$$;
 
 CREATE TABLE IF NOT EXISTS seller_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -56,6 +79,29 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+DO $$
+DECLARE
+    role_constraint_definition TEXT;
+BEGIN
+    SELECT pg_get_constraintdef(oid)
+    INTO role_constraint_definition
+    FROM pg_constraint
+    WHERE conrelid = 'users'::regclass
+      AND conname = 'users_role_check';
+
+    IF role_constraint_definition IS NOT NULL
+       AND POSITION('OWNER' IN role_constraint_definition) = 0 THEN
+        ALTER TABLE users DROP CONSTRAINT users_role_check;
+        role_constraint_definition := NULL;
+    END IF;
+
+    IF role_constraint_definition IS NULL THEN
+        ALTER TABLE users
+            ADD CONSTRAINT users_role_check
+            CHECK (role IN ('CUSTOMER', 'SELLER', 'RIDER', 'ADMIN', 'OWNER'));
+    END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
@@ -79,6 +125,29 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+DO $$
+DECLARE
+    role_constraint_definition TEXT;
+BEGIN
+    SELECT pg_get_constraintdef(oid)
+    INTO role_constraint_definition
+    FROM pg_constraint
+    WHERE conrelid = 'users'::regclass
+      AND conname = 'users_role_check';
+
+    IF role_constraint_definition IS NOT NULL
+       AND POSITION('OWNER' IN role_constraint_definition) = 0 THEN
+        ALTER TABLE users DROP CONSTRAINT users_role_check;
+        role_constraint_definition := NULL;
+    END IF;
+
+    IF role_constraint_definition IS NULL THEN
+        ALTER TABLE users
+            ADD CONSTRAINT users_role_check
+            CHECK (role IN ('CUSTOMER', 'SELLER', 'RIDER', 'ADMIN', 'OWNER'));
+    END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_rider ON orders(rider_id);
@@ -125,3 +194,5 @@ VALUES
     ('Electronics', 'Electronic products and accessories'),
     ('Household', 'Home and household goods')
 ON CONFLICT (name) DO NOTHING;
+
+

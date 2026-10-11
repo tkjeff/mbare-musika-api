@@ -12,7 +12,7 @@ const {
 
 const router = express.Router();
 
-router.use(authenticate, authorizeRoles("ADMIN"));
+router.use(authenticate, authorizeRoles("OWNER", "ADMIN"));
 
 router.get("/sellers/pending", getPendingSellers);
 router.patch("/sellers/:sellerProfileId/approval", reviewSeller);
@@ -21,3 +21,4 @@ router.get("/riders/pending", getPendingRiders);
 router.patch("/riders/:riderProfileId/approval", reviewRider);
 
 module.exports = router;
+
