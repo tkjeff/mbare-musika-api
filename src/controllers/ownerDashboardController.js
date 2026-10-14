@@ -18,8 +18,8 @@ async function getDashboardStats(req, res, next) {
                 (SELECT COUNT(*) FROM orders WHERE status = 'PENDING') AS pending_orders,
                 (SELECT COUNT(*) FROM orders WHERE status = 'DELIVERED') AS delivered_orders,
                 (SELECT COUNT(*) FROM payments) AS total_payment_records,
-                (SELECT COUNT(*) FROM payments WHERE status = 'SUCCESS') AS successful_payment_records,
-                (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'SUCCESS') AS successful_payment_amount,
+                (SELECT COUNT(*) FROM marketplace_payment_transactions WHERE status = 'SUCCESS') AS successful_payment_records,
+                (SELECT COALESCE(SUM(amount), 0) FROM marketplace_payment_transactions WHERE status = 'SUCCESS') AS successful_payment_amount,
                 (SELECT COUNT(*) FROM users WHERE is_active = FALSE) AS disabled_users
         `);
 

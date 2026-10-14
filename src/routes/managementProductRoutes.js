@@ -3,9 +3,18 @@ const { z } = require("zod");
 const pool = require("../config/db");
 const { authenticate, authorizeRoles } = require("../middleware/authMiddleware");
 
+const { uploadManagementProductImage } = require("../controllers/imageUploadController");
+const { uploadProductImageMiddleware } = require("../middleware/imageUploadMiddleware");
+
 const router = express.Router();
 
 router.use(authenticate, authorizeRoles("OWNER", "ADMIN"));
+
+router.post(
+  "/upload-image",
+  uploadProductImageMiddleware,
+  uploadManagementProductImage
+);
 
 const productInput = z.object({
   name: z.string().trim().min(2).max(180),

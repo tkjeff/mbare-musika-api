@@ -196,3 +196,93 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 
+
+-- Mbare Musika financial ledger.
+-- Commission records are unique per order item.
+-- No financial record alone constitutes a bank transfer.
+
+CREATE TABLE IF NOT EXISTS marketplace_commissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_item_id UUID NOT NULL UNIQUE REFERENCES order_items(id),
+    order_id UUID NOT NULL REFERENCES orders(id),
+    seller_id UUID NOT NULL REFERENCES users(id),
+    gross_amount NUMERIC(12,2) NOT NULL CHECK (gross_amount >= 0),
+    commission_rate NUMERIC(5,2) NOT NULL DEFAULT 3.00
+        CHECK (commission_rate = 3.00),
+    commission_amount NUMERIC(12,2) NOT NULL CHECK (commission_amount >= 0),
+    seller_amount NUMERIC(12,2) NOT NULL CHECK (seller_amount >= 0),
+    currency CHAR(3) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'HELD'
+        CHECK (status IN ('HELD', 'AVAILABLE', 'PAID', 'DISPUTED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (
+        ROUND(commission_amount + seller_amount, 2) =
+        ROUND(gross_amount, 2)
+    )
+);
+
+CREATE INDEX IF NOT EXISTS idx_marketplace_commissions_seller_status
+    ON marketplace_commissions(seller_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_marketplace_commissions_order
+    ON marketplace_commissions(order_id);
+
+CREATE TABLE IF NOT EXISTS marketplace_financial_audit (
+    id BIGSERIAL PRIMARY KEY,
+    actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Mbare Musika Paynow payment transactions.
+-- A successful provider payment is verified server-side before commissions are recorded.
+CREATE TABLE IF NOT EXISTS marketplace_payment_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    provider VARCHAR(30) NOT NULL DEFAULT 'PAYNOW',
+    provider_reference VARCHAR(120) NOT NULL UNIQUE,
+    amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+    currency CHAR(3) NOT NULL DEFAULT 'USD',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED')),
+    checkout_url TEXT,
+    poll_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS marketplace_payment_one_pending_per_order
+    ON marketplace_payment_transactions(order_id)
+    WHERE status = 'PENDING';
+
+CREATE UNIQUE INDEX IF NOT EXISTS marketplace_payment_one_success_per_order
+    ON marketplace_payment_transactions(order_id)
+    WHERE status = 'SUCCESS';
+
+CREATE INDEX IF NOT EXISTS marketplace_payment_order_status_idx
+    ON marketplace_payment_transactions(order_id, status);
+
+-- MBARÉ MUSIKA PAYNOW COMPATIBILITY MIGRATION
+-- Safe to execute repeatedly during application startup.
+ALTER TABLE marketplace_payment_transactions
+    ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES users(id);
+
+ALTER TABLE marketplace_payment_transactions
+    ADD COLUMN IF NOT EXISTS merchant_reference VARCHAR(180);
+
+ALTER TABLE marketplace_payment_transactions
+    ADD COLUMN IF NOT EXISTS provider_status VARCHAR(100);
+
+ALTER TABLE marketplace_payment_transactions
+    ADD COLUMN IF NOT EXISTS failure_reason TEXT;
+
+-- A transaction may exist before the payment provider reference is available.
+ALTER TABLE marketplace_payment_transactions
+    ALTER COLUMN provider_reference DROP NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS marketplace_payment_merchant_reference_unique
+    ON marketplace_payment_transactions (merchant_reference)
+    WHERE merchant_reference IS NOT NULL;

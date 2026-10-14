@@ -1,4 +1,4 @@
-﻿const cloudinary = require("cloudinary").v2;
+const cloudinary = require("cloudinary").v2;
 const pool = require("../config/db");
 const { Readable } = require("stream");
 
@@ -74,7 +74,7 @@ function detectImage(buffer) {
     return null;
 }
 
-async function uploadProductImage(req, res, next) {
+async function uploadImage(req, res, next, requireApprovedSeller) {
     try {
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
@@ -92,23 +92,26 @@ async function uploadProductImage(req, res, next) {
             });
         }
 
-        // Confirm seller approval before sending the file to Cloudinary.
-        const seller = await pool.query(
-            `SELECT approval_status
-             FROM seller_profiles
-             WHERE user_id = $1
-             LIMIT 1`,
-            [req.user.sub]
-        );
+        // Seller uploads require an approved seller profile.
+        // Management uploads are protected by OWNER/ADMIN route authorization.
+        if (requireApprovedSeller) {
+            const seller = await pool.query(
+                `SELECT approval_status
+                 FROM seller_profiles
+                 WHERE user_id = $1
+                 LIMIT 1`,
+                [req.user.sub]
+            );
 
-        if (
-            seller.rowCount === 0 ||
-            seller.rows[0].approval_status !== "APPROVED"
-        ) {
-            return res.status(403).json({
-                success: false,
-                message: "Your seller account must be approved before uploading product images."
-            });
+            if (
+                seller.rowCount === 0 ||
+                seller.rows[0].approval_status !== "APPROVED"
+            ) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Your seller account must be approved before uploading product images."
+                });
+            }
         }
 
         if (!configureCloudinary()) {
@@ -168,4 +171,12 @@ async function uploadProductImage(req, res, next) {
     }
 }
 
-module.exports = { uploadProductImage };
+function uploadProductImage(req, res, next) {
+    return uploadImage(req, res, next, true);
+}
+
+function uploadManagementProductImage(req, res, next) {
+    return uploadImage(req, res, next, false);
+}
+
+module.exports = { uploadProductImage, uploadManagementProductImage };

@@ -6,6 +6,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const managementRoutes = require("./routes/managementRoutes");
 const managementProductRoutes = require("./routes/managementProductRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const financialRoutes = require("./routes/financialRoutes");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -60,6 +61,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/management", managementRoutes);
 app.use("/api/management/products", managementProductRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/finance", financialRoutes);
+app.use("/api/payments", require("./routes/paymentRoutes"));
 
 app.get("/", (req, res) => {
     res.json({

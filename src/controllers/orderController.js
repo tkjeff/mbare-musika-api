@@ -1,4 +1,4 @@
-﻿const pool = require("../config/db");
+const pool = require("../config/db");
 
 const DELIVERY_FEE = 0;
 
@@ -84,7 +84,7 @@ async function createOrder(req, res, next) {
                 p.seller_id,
                 sp.approval_status
              FROM products p
-             JOIN seller_profiles sp ON sp.id = p.seller_id
+             JOIN seller_profiles sp ON sp.user_id = p.seller_id
              WHERE p.id = ANY($1::uuid[])
              ORDER BY p.id
              FOR UPDATE OF p`,
