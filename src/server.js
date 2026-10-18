@@ -5,6 +5,7 @@ const productRoutes = require("./routes/productRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const managementRoutes = require("./routes/managementRoutes");
 const managementProductRoutes = require("./routes/managementProductRoutes");
+const riderRoutes = require("./routes/riderRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const financialRoutes = require("./routes/financialRoutes");
 const express = require("express");
@@ -61,6 +62,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/management", managementRoutes);
 app.use("/api/management/products", managementProductRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/rider", riderRoutes);
+app.use("/api/riders", riderRoutes);
 app.use("/api/finance", financialRoutes);
 app.use("/api/payments", require("./routes/paymentRoutes"));
 
@@ -142,6 +145,7 @@ start().catch((error) => {
     console.error("Failed to start Mbare Musika API:", error.message);
     process.exit(1);
 });
+
 
 
 
