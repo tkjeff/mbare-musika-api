@@ -1,11 +1,11 @@
-const bcrypt = require("bcryptjs");
+﻿const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
 const { z } = require("zod");
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: true }
+  ssl: { rejectUnauthorized: false }
 });
 
 const registerSchema = z.object({
@@ -241,3 +241,4 @@ async function me(req, res, next) {
 }
 
 module.exports = { register, login, me };
+
