@@ -1,4 +1,4 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -19,7 +19,8 @@ if (!process.env.DATABASE_URL) {
 }
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
 app.disable("x-powered-by");
@@ -125,4 +126,5 @@ start().catch((error) => {
     console.error("Failed to start Mbare Musika API:", error.message);
     process.exit(1);
 });
+
 
