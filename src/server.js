@@ -1,4 +1,4 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -142,5 +142,6 @@ start().catch((error) => {
     console.error("Failed to start Mbare Musika API:", error.message);
     process.exit(1);
 });
+
 
 
